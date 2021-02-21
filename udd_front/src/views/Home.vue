@@ -86,7 +86,7 @@
                       dense
                     ></v-textarea>
                   </v-col>
-                   <v-col cols="3">
+                  <v-col cols="3">
                     <v-select
                       v-model="search.operatorText"
                       :items="operator"
@@ -127,7 +127,7 @@
               style="overflow: auto"
             >
               <template v-slot:item.actions="{ item }">
-                <v-btn icon>
+                <v-btn icon @click="downloadBook(item)">
                   <v-icon color="green darken-2">mdi-download</v-icon>
                 </v-btn>
               </template>
@@ -192,8 +192,23 @@ export default {
       axios
         .post("/book/search", this.search)
         .then((response) => {
-          console.log(response.data.content);
           this.items = response.data.content;
+        })
+        .catch((error) => {});
+    },
+    downloadBook(item) {
+      let url = item.filename
+      let formData = new FormData();
+      formData.append("url", url);
+      axios
+        .post("/book/download", formData)
+        .then((response) => {
+          let blob = new Blob([response.data], { type: "application/pdf" });
+          let link = document.createElement("a");
+          link.href = window.URL.createObjectURL(blob);
+          link.download = item.title+".pdf";
+          link.click();
+          console.log(response.data);
         })
         .catch((error) => {});
     },
@@ -202,7 +217,6 @@ export default {
     axios
       .get("/book")
       .then((response) => {
-        console.log(response.data.content);
         this.items = response.data.content;
       })
       .catch((error) => {});
